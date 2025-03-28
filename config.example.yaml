@@ -1,0 +1,76 @@
+# Global Configuration
+global:
+  default_timeout: 30  # Default connection timeout in seconds
+  log_level: info      # Logging verbosity (debug, info, warn, error)
+  work_dir: "/path/to/workspace"
+
+# Mail Accounts Configuration
+accounts:
+  - name: gmail_account
+    protocol:
+      smtp:
+        host: smtp.gmail.com
+        port: 587
+        security: ssl
+        auth_method: start_tls
+        from:
+          name: "example"
+          address: "example@gmail.com"
+        to:
+          - name: "immutable"
+            address: "example@gmail.com"
+      imap:
+        host: imap.gmail.com
+        port: 993
+        security: ssl
+        auth_method: login
+        filter:
+          name: "tasks"
+          folders:
+            - "inbox"
+          conditions:
+            - type: "FROM"
+              value: "example@gmail.com"
+            - type: "SUBJECT"
+              value: "task"
+            - type: "UNSEEN"
+            - type: "SINCE_DATE"
+              value: "2025-01-01"  # Format: YYYY-MM-DD
+    credentials:
+      username: example@gmail.com
+      password: ${GMAIL_PASSWORD}
+    default_folder: inbox
+
+  - name: yahoo_account
+    protocol:
+      smtp:
+        host: smtp.mail.yahoo.com
+        port: 587
+        security: starttls
+        auth_method: login
+      imap:
+        host: imap.mail.yahoo.com
+        port: 993
+        security: ssl
+        auth_method: login
+    credentials:
+      username: example@yahoo.com
+      password: ${YAHOO_PASSWORD}
+    default_folder: inbox
+
+  - name: zoho_account
+    protocol:
+      smtp:
+        host: smtp.zoho.com
+        port: 587
+        security: starttls
+        auth_method: login
+      imap:
+        host: imap.zoho.com
+        port: 993
+        security: ssl
+        auth_method: login
+    credentials:
+      username: mailio@zoho.com
+      password: ${ZOHO_PASSWORD}
+    default_folder: inbox

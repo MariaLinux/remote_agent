@@ -1,0 +1,10 @@
+[requires]
+mailio/0.24.1
+boost/1.86.0
+openssl/3.3.2
+yaml-cpp/0.8.0
+[generators]
+CMakeDeps
+CMakeToolchain
+[layout]
+cmake_layout
