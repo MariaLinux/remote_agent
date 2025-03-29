@@ -77,6 +77,8 @@ class Config {
         Config();
         
         void loadConfig(const std::string& config_path);
+        void loadDotEnvFile();
+        std::string trim(const std::string& str);
         mailio::imap::search_condition_t parseCondition(const YAML::Node& condition_node);
         std::optional<ImapFilterConfig> parseImapFilter(const YAML::Node& imap_node);
         std::optional<SmtpConfig> parseSmtpConfig(const YAML::Node& smtp_node);

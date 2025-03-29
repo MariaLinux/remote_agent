@@ -3,3 +3,4 @@ config.yaml
 build
 .vscode
 CMakeUserPresets.json
+.cache

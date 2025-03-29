@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# IDE support
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Dependecy management with conan
 include(FetchContent)
     FetchContent_Declare(conan
@@ -32,13 +35,13 @@ message(STATUS "mailio_LIBS_RELEASE: ${mailio_LIBS_RELEASE}")
 message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
 message(STATUS "OpenSSL_LIBRARIES: ${OpenSSL_LIBRARIES}")
 
-file(GLOB_RECURSE SOURCE_FILES 
+file(GLOB_RECURSE SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE 
+target_include_directories(${PROJECT_NAME} PRIVATE
     include
     ${mailio_INCLUDE_DIRS})
 
@@ -55,3 +58,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     yaml-cpp
     pthread
     )
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.env)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/.env ${CMAKE_BINARY_DIR}/.env COPYONLY)
+endif()
