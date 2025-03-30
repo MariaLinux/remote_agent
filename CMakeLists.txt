@@ -29,6 +29,7 @@ find_package(mailio REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(minizip REQUIRED)
 
 message(STATUS "mailio_LIBRARIES: ${mailio_LIBRARIES}")
 message(STATUS "mailio_LIBS_RELEASE: ${mailio_LIBS_RELEASE}")
@@ -43,7 +44,8 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
-    ${mailio_INCLUDE_DIRS})
+    ${mailio_INCLUDE_DIRS}
+    ${minizip_INCLUDE_DIRS})
 
 target_link_directories(${PROJECT_NAME} PRIVATE
     ${CONAN_RUNTIME_LIB_DIRS})
@@ -56,6 +58,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenSSL::SSL
     OpenSSL::Crypto
     yaml-cpp
+    MINIZIP::minizip
     pthread
     )
 
