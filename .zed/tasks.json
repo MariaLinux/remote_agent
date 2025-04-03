@@ -1,0 +1,30 @@
+[
+  {
+    "label": "CMake build Debug",
+    "command": "cmake -S . -B build/Debug -DCMAKE_BUILD_TYPE=Debug; cmake --build build/Debug",
+    // "env": {
+    //   "http_proxy": "http://127.0.0.1:20171",
+    //   "https_proxy": "http://127.0.0.1:20171"
+    // },
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system"
+  },
+  {
+    "label": "CMake build Release",
+    "command": "cmake -S . -B build/Release -DCMAKE_BUILD_TYPE=Release; cmake --build build/Release",
+    // "env": {
+    //   "http_proxy": "http://127.0.0.1:20171",
+    //   "https_proxy": "http://127.0.0.1:20171"
+    // },
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system"
+  }
+]
