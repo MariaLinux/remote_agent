@@ -26,5 +26,25 @@
     "reveal_target": "dock",
     "hide": "never",
     "shell": "system"
+  },
+  {
+    "label": "RUN Debug",
+    "command": "./build/Debug/remote_agent",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system"
+  },
+  {
+    "label": "RUN Release",
+    "command": "./build/Release/remote_agent",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system"
   }
 ]

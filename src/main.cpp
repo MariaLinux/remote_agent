@@ -9,9 +9,18 @@
 
 #include "config.h"
 #include "mail.h"
+#include "runner.h"
 
 
 int main(int argc, char *argv[]) {
+  remote_agent::Runner runner;
+  const auto [exit_code, output, error] = runner.execute("ls /");
+  if (exit_code == 0 ){
+    std::cout << "output: " << output << std::endl;
+    std::cerr << "error: " << error << std::endl;
+  } else {
+    std::cerr << "error: " << error << std::endl;
+  }
   try {
     openlog(argv[0], LOG_CONS | LOG_PID, LOG_USER);
     boost::program_options::options_description desc("Available options");
