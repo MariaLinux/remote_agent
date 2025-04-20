@@ -40,7 +40,7 @@ if (conan_POPULATED)
 endif()
 
 find_package(mailio REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system filesystem program_options process)
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options process log log_setup)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(minizip REQUIRED)
@@ -66,6 +66,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Boost::filesystem
     Boost::program_options
     Boost::process
+    Boost::log
+    Boost::log_setup
     OpenSSL::SSL
     OpenSSL::Crypto
     yaml-cpp::yaml-cpp

@@ -11,16 +11,17 @@
 #include "mail.h"
 #include "runner.h"
 
-
 int main(int argc, char *argv[]) {
-  remote_agent::Runner runner;
-  const auto [exit_code, output, error] = runner.execute("ls /");
-  if (exit_code == 0 ){
+  remote_agent::Runner runner("task");
+  std::cout << runner.getOutputfile() << std::endl;
+  const auto [exit_code, output, error] = runner.execute("pstree");
+  if (exit_code == 0) {
     std::cout << "output: " << output << std::endl;
     std::cerr << "error: " << error << std::endl;
   } else {
     std::cerr << "error: " << error << std::endl;
   }
+  return 0;
   try {
     openlog(argv[0], LOG_CONS | LOG_PID, LOG_USER);
     boost::program_options::options_description desc("Available options");
