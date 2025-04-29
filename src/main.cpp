@@ -12,15 +12,19 @@
 #include "runner.h"
 
 int main(int argc, char *argv[]) {
-  remote_agent::Runner runner("task");
+  remote_agent::Runner runner;
+  auto task = runner.parseTasks("/home/amin/code/amin/marialinux/remote_agent/build/Debug/task1.yaml");
   std::cout << runner.getOutputfile() << std::endl;
-  const auto [exit_code, output, error] = runner.execute("pstree");
-  if (exit_code == 0) {
-    std::cout << "output: " << output << std::endl;
-    std::cerr << "error: " << error << std::endl;
-  } else {
-    std::cerr << "error: " << error << std::endl;
+  for (const auto & step : task.steps) {
+    std::cout << "Step: " << step.name << std::endl;
+    for (const auto & env : step.environments) {
+      std::cout << "Environment: " << env.first << "=" << env.second << std::endl;
+    }
+    for (const auto & command : step.commands) {
+      std::cout << "Command: " << command << std::endl;
+    }
   }
+  runner.execute(task);
   return 0;
   try {
     openlog(argv[0], LOG_CONS | LOG_PID, LOG_USER);

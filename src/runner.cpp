@@ -2,9 +2,13 @@
 
 #include <chrono>
 #include <filesystem>
+#include <iostream>
 #include <random>
 #include <system_error>
 #include <tuple>
+
+#include <yaml-cpp/yaml.h>
+#include <boost/process/v1/environment.hpp>
 
 #include "runner_log.h"
 
@@ -13,6 +17,10 @@ Runner::Runner(const std::string &task_name)
     : _default_shell(true), _task_name(task_name) {
   createOutputName();
   register_log_file(_output_file);
+}
+
+Runner::Runner()
+    : _default_shell(true), _task_name("default_task") {
 }
 
 CommandResult Runner::execute(const std::string &command) {
@@ -24,6 +32,7 @@ CommandResult Runner::execute(const std::string &command) {
           << command << "\"";
       boost::process::child process(boost::process::shell(),
                                     boost::process::args = {"-c", command},
+                                    // boost::this_process::environment(),
                                     boost::process::std_out > out_stream,
                                     boost::process::std_err > err_stream);
       auto res = readStream(process, out_stream, err_stream);
@@ -50,6 +59,7 @@ CommandResult Runner::execute(const std::string &command) {
     BOOST_LOG_TRIVIAL(info) << ">> " << shell << " -c \"" << command << "\"";
     boost::process::child process(boost::process::search_path(shell),
                                   boost::process::args = {"-c", command},
+                                  // boost::this_process::environment(),
                                   boost::process::std_out > out_stream,
                                   boost::process::std_err > err_stream);
     auto res = readStream(process, out_stream, err_stream);
@@ -102,4 +112,79 @@ void Runner::createOutputName() {
 }
 
 std::string Runner::getOutputfile() { return _output_file; }
+
+Task Runner::parseTasks(const std::string &yaml_file) {
+  Task task;
+
+    try {
+      YAML::Node config = YAML::LoadFile(yaml_file);
+      if (!config["name"]) {
+        throw std::runtime_error("Missing 'name' field in YAML file.");
+      }
+      task.name = config["name"].as<std::string>();
+
+      if (!config["steps"] || !config["steps"].IsSequence()) {
+        throw std::runtime_error("'steps' field is missing or not a sequence in YAML file.");
+      }
+      for (const auto &step : config["steps"]) {
+        if (!step["name"]) {
+          throw std::runtime_error("A step is missing the 'name' field in YAML file.");
+        }
+        Step step_obj;
+        step_obj.name = step["name"].as<std::string>();
+
+        if (!step["commands"] || !step["commands"].IsSequence()) {
+          throw std::runtime_error("The 'commands' field is missing or not a sequence in a step.");
+        }
+        for (const auto &command : step["commands"]) {
+          step_obj.commands.push_back(command.as<std::string>());
+        }
+
+        if (step["environments"] && step["environments"].IsSequence()) {
+          for (const auto &env : step["environments"]) {
+            if (env.IsMap()){
+              for (const auto &env_pair : env) {
+                step_obj.environments[env_pair.first.as<std::string>()] = env_pair.second.as<std::string>();
+              }
+            }
+          }
+        }
+        task.steps.push_back(step_obj);
+      }
+    } catch (const std::exception &e) {
+      BOOST_LOG_TRIVIAL(fatal) << "Error parsing YAML file: " << e.what();
+    }
+  
+  _task_name = task.name;
+  createOutputName();
+  register_log_file(_output_file);
+  
+  return task;
+}
+
+int Runner::execute(const Task &task) {
+  for (const auto & step : task.steps) {
+    BOOST_LOG_TRIVIAL(info) << "-- Executing step: " << step.name;
+    // Set up the environment for the step commands
+    for (const auto &env : step.environments) {
+      std::cout << "Setting environment variable: " << env.first
+                << " = " << env.second << std::endl;
+      boost::this_process::environment()[env.first] = env.second;
+
+    }
+    // Execute the commands in the step
+    for (const auto & command : step.commands) {
+      const auto [exit_code, output, error] = execute(command);
+      if (exit_code != 0)
+        return exit_code;
+    }
+    // Clean up the environment
+    for (const auto &env : step.environments) {
+      std::cout << "Removing environment variable: " << env.first << std::endl;
+      boost::this_process::environment().erase(env.first);
+    }
+  }
+  return 0;
+}
+
 } // namespace remote_agent

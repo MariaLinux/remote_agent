@@ -1,0 +1,19 @@
+name: task_example
+steps:
+  - name: step1
+    commands:
+      - uname -a
+      - printenv
+      - echo $TEST_VAR
+    environments:
+      # Environment variables are represented as a list of single key-value maps
+      - TEST_VAR: test 
+  - name: step2
+    commands:
+      - ls
+    environments:
+      - VAR1: var1
+  - name: step3
+    commands:
+      - ps
+      - echo $TEST_VAR
