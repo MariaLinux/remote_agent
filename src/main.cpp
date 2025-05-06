@@ -1,17 +1,96 @@
-#include <algorithm>
-#include <boost/program_options.hpp>
-#include <filesystem>
-#include <fstream>
+
 #include <iostream>
 #include <list>
 #include <string>
+#include <chrono>
+#include <thread>
 #include <syslog.h>
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <iomanip>
+#include <ctime>
+
+#include <boost/program_options.hpp>
+#include <zmqpp/zmqpp.hpp>
 
 #include "config.h"
 #include "mail.h"
 #include "runner.h"
+#include "timer.h"
+
+std::string getCurrentTimeStr() {
+
+auto now = std::chrono::system_clock::now();
+auto time = std::chrono::system_clock::to_time_t(now);
+std::stringstream ss;
+ss << std::put_time(std::localtime(&time), "%H:%M:%S");
+return ss.str();
+}
 
 int main(int argc, char *argv[]) {
+  // Example 1: One-shot timer
+  remote_agent::Timer oneShot;
+  std::cout << getCurrentTimeStr() << " - Starting one-shot timer for 2 seconds" << std::endl;
+  oneShot.startOneShot(2000, []() {
+      std::cout << getCurrentTimeStr() << " - One-shot timer fired!" << std::endl;
+  });
+  
+  // Sleep to allow the one-shot timer to execute
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+
+  // Example 2: Periodic timer
+  remote_agent::Timer periodic;
+  std::cout << getCurrentTimeStr() << " - Starting periodic timer with 1 second interval" << std::endl;
+  periodic.startPeriodic(1000, []() {
+      std::cout << getCurrentTimeStr() << " - Periodic timer fired!" << std::endl;
+  });
+  
+  // Let the periodic timer run for 5 seconds
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+  
+  // Stop the periodic timer
+  std::cout << getCurrentTimeStr() << " - Stopping periodic timer" << std::endl;
+  periodic.stop();
+  
+  // Example 3: Timer with parameters
+  remote_agent::Timer paramTimer;
+  std::cout << getCurrentTimeStr() << " - Starting timer with parameters" << std::endl;
+  int counter = 0;
+  paramTimer.startPeriodic(500, [&counter](const std::string& message) {
+      counter++;
+      std::cout << getCurrentTimeStr() << " - " << message << " (count: " << counter << ")" << std::endl;
+      if (counter >= 6) {
+          std::cout << getCurrentTimeStr() << " - Reached target count" << std::endl;
+      }
+  }, "Parameter passed to timer");
+  
+  // Let it run for 3 seconds
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  
+  // Stop all timers before exiting
+  paramTimer.stop();
+  
+  std::cout << getCurrentTimeStr() << " - Program complete" << std::endl;
+  return 0;
+  const std::string endpoint = "tcp://*:5555";
+  zmqpp::context context;
+  zmqpp::socket_type type = zmqpp::socket_type::reply;
+  zmqpp::socket socket (context, type);
+  socket.bind(endpoint);
+    while (1) {
+      // receive the message
+      zmqpp::message message;
+      // decompose the message 
+      socket.receive(message);
+      std::string text;
+      message >> text;
+  
+      //Do some 'work'
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::cout << "Received Hello" << std::endl;
+      socket.send("World");
+    }
   remote_agent::Runner runner;
   auto task = runner.parseTasks("/home/amin/code/amin/marialinux/remote_agent/build/Debug/task1.yaml");
   std::cout << runner.getOutputfile() << std::endl;
