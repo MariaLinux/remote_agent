@@ -43,6 +43,7 @@ void Config::loadConfig(const std::string &config_path) {
       _global_config.default_timeout = global["default_timeout"].as<int>(30);
       _global_config.log_level = global["log_level"].as<std::string>("info");
       _global_config.work_dir = global["work_dir"].as<std::string>("/tmp");
+      _global_config.zeromq_endpoint = global["zeromq_endpoint"].as<std::string>("tcp://*:2986");
     }
     loadDotEnvFile();
 

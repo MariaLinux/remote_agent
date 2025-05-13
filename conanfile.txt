@@ -4,6 +4,7 @@ boost/1.86.0
 openssl/3.3.2
 yaml-cpp/0.8.0
 minizip-ng/4.0.7
+zmqpp/4.2.0
 [generators]
 CMakeDeps
 CMakeToolchain

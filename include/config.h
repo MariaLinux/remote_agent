@@ -16,6 +16,8 @@ struct GlobalConfig {
     int default_timeout;
     std::string log_level;
     std::string work_dir;
+    std::string zeromq_endpoint;
+    int check_mail_interval_ms;
 };
 
 struct ProtocolConfig {

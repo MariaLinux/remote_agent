@@ -3,6 +3,9 @@ global:
   default_timeout: 30  # Default connection timeout in seconds
   log_level: info      # Logging verbosity (debug, info, warn, error)
   work_dir: "/path/to/workspace"
+  zeromq_endpoint: "tcp://*:2986"
+  check_mail_interval_ms: 500
+
 
 # Mail Accounts Configuration
 accounts:
