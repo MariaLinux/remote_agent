@@ -3,6 +3,9 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <random>
+#include <filesystem>
+#include <fstream>
 #include <syslog.h>
 
 namespace remote_agent::mail {

@@ -29,7 +29,7 @@
   },
   {
     "label": "RUN Debug",
-    "command": "./build/Debug/remote_agent",
+    "command": "gdb -ex run --args ./build/Debug/remote_agent --config config.yaml",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",

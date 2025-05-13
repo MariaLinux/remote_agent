@@ -44,6 +44,7 @@ find_package(Boost REQUIRED COMPONENTS system filesystem program_options process
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(minizip REQUIRED)
+find_package(zmqpp REQUIRED)
 
 file(GLOB_RECURSE SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
@@ -55,7 +56,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include
     ${mailio_INCLUDE_DIRS}
     ${minizip_INCLUDE_DIRS}
-    ${yaml-cpp_INCLUDE_DIRS})
+    ${yaml-cpp_INCLUDE_DIRS}
+    ${zmqpp_INCLUDE_DIRS})
 
 target_link_directories(${PROJECT_NAME} PRIVATE
     ${CONAN_RUNTIME_LIB_DIRS})
@@ -72,6 +74,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenSSL::Crypto
     yaml-cpp::yaml-cpp
     MINIZIP::minizip
+    zmqpp::zmqpp
     pthread
     )
 
