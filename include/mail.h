@@ -37,7 +37,8 @@ namespace remote_agent::mail {
         std::vector<MailGroup> group_bcc_list;
     };
 
-    using File = std::tuple<std::istream&, std::string, std::string>;
+    // File pair is (file_path, content_type)
+    using File = std::pair<std::string, std::string>;
     using Protocol = std::variant<
                                 mailio::smtp*, 
                                 mailio::smtps*,
@@ -59,7 +60,7 @@ namespace remote_agent::mail {
         private:
             mailio::message prepareMessage(const Recipient& recipient, const std::string& subject, const std::string& body);
             mailio::message prepareMessage(const std::string& subject, const std::string& body);
-            std::list<std::tuple<std::istream&, mailio::string_t, mailio::mime::content_type_t>> 
+            std::list<std::tuple<std::shared_ptr<std::istream>, mailio::string_t, mailio::mime::content_type_t>> 
               prepareAttachment(const std::list<File>& file_list);
             Error parseError(const std::string& error);
             std::optional<Error> send(const mailio::message& msg);

@@ -1,7 +1,10 @@
 #include "mail.h"
+#include "config.h"
 
 #include <chrono>
 #include <iomanip>
+#include <mailio/dialog.hpp>
+#include <memory>
 #include <sstream>
 #include <random>
 #include <filesystem>
@@ -22,8 +25,11 @@ namespace remote_agent::mail {
 
     std::optional<Error> Mail::send(const Recipient &recipient, const std::string &subject, const std::string &body, const std::list<File> &file_list) {
         auto msg = prepareMessage(recipient, subject, body);
-        auto attachment_list = prepareAttachment(file_list);
+        auto list = prepareAttachment(file_list);
         
+        std::list<std::tuple<std::istream&, mailio::string_t, mailio::mime::content_type_t>> attachment_list;
+        for (const auto &item : list)
+          attachment_list.push_back(std::make_tuple(std::ref(*std::get<0>(item).get()), std::get<1>(item), std::get<2>(item)));
         if (!attachment_list.empty())
             msg.attach(attachment_list);
 
@@ -38,8 +44,11 @@ namespace remote_agent::mail {
 
     std::optional<Error> Mail::send(const std::string &subject, const std::string &body, const std::list<File> &file_list) {
         auto msg = prepareMessage(subject, body);
-        auto attachment_list = prepareAttachment(file_list);
+        auto list = prepareAttachment(file_list);
         
+        std::list<std::tuple<std::istream&, mailio::string_t, mailio::mime::content_type_t>> attachment_list;
+        for (const auto &item : list)
+          attachment_list.push_back(std::make_tuple(std::ref(*std::get<0>(item).get()), std::get<1>(item), std::get<2>(item)));
         if (!attachment_list.empty())
             msg.attach(attachment_list);
 
@@ -83,6 +92,7 @@ namespace remote_agent::mail {
 
     std::pair<std::string,std::optional<Error>> Mail::getByFilter() {
         std::optional<Error> err;
+        try {
         if (_config.imap.security == "ssl") {
             mailio::imaps conn(_config.imap.host , _config.imap.port);
             err = authenticate(&conn);
@@ -96,6 +106,17 @@ namespace remote_agent::mail {
                 return std::make_pair("",err);
             return getByFilter(conn);
         }
+    }
+     catch (const mailio::dialog_error& exc) {
+        syslog(LOG_ERR, "Mail/getByFilter: %s", exc.what());
+        err = parseError(exc.what());
+        return std::make_pair("",err);
+     }
+     catch (const std::exception& exc) {
+        syslog(LOG_ERR, "Mail/getByFilter: %s", exc.what());
+        err = parseError(exc.what());
+        return std::make_pair("",err);
+     }
     }
 
     std::pair<std::string,std::optional<Error>> Mail::getByFilter(mailio::imap& conn) {
@@ -112,6 +133,10 @@ namespace remote_agent::mail {
             syslog(LOG_INFO, "Mail count in %s: %ld", folders.c_str(), stat.messages_no);
             std::list<unsigned long> messages;
             conn.search(_config.imap_filter.conditions, messages, true);
+            if (messages.empty()) {
+                syslog(LOG_INFO, "No new mail found");
+                return  std::make_pair<std::string,std::optional<Error>>(std::string(),std::make_pair<ErrorCode,std::string>(ErrorCode::NO_NEW_MAIL, "No new mail found"));
+            }
             for(unsigned int msg_uid : messages) { 
                 mailio::message msg;
                 std::string msg_str;
@@ -278,11 +303,11 @@ namespace remote_agent::mail {
         return std::move(msg);
     }
 
-    std::list<std::tuple<std::istream&, mailio::string_t, mailio::mime::content_type_t>> Mail::prepareAttachment(const std::list<File> &file_list) {
-        std::list<std::tuple<std::istream&, mailio::string_t, mailio::mime::content_type_t>> attachment_list;
+    std::list<std::tuple<std::shared_ptr<std::istream>, mailio::string_t, mailio::mime::content_type_t>> Mail::prepareAttachment(const std::list<File> &file_list) {
+        std::list<std::tuple<std::shared_ptr<std::istream>, mailio::string_t, mailio::mime::content_type_t>> attachment_list;
         for (const auto &file : file_list) {
             mailio::message::content_type_t mime_type;
-            std::string lower_mime = boost::to_lower_copy(std::get<2>(file));
+            std::string lower_mime = boost::to_lower_copy(file.second);
             auto separator_pos = lower_mime.find('/');
 
             if (separator_pos != std::string::npos) {
@@ -307,9 +332,10 @@ namespace remote_agent::mail {
             } else {
                 mime_type = mailio::message::content_type_t(mailio::message::media_type_t::TEXT, "plain");
             }
+            std::shared_ptr<std::ifstream> ifs = std::make_shared<std::ifstream>(file.first, std::ios::binary);
             attachment_list.push_back(std::make_tuple(
-                std::ref(std::get<0>(file)),
-                mailio::string_t(std::get<1>(file), "ASCII", mailio::codec::codec_t::ASCII),
+                ifs,
+                mailio::string_t(std::filesystem::path(file.first).filename().string(), "ASCII", mailio::codec::codec_t::ASCII),
                 mime_type
             ));
         }

@@ -162,7 +162,14 @@ Task Runner::parseTasks(const std::string &yaml_file) {
   return task;
 }
 
-int Runner::execute(const Task &task) {
+int Runner::execute(const Task &task, std::optional<std::string> error) {
+  if (error.has_value()) {
+    BOOST_LOG_TRIVIAL(fatal) << error.value();
+    return -1;
+  }
+  _task_name = task.name;
+  createOutputName();
+  register_log_file(_output_file);
   for (const auto & step : task.steps) {
     BOOST_LOG_TRIVIAL(info) << "-- Executing step: " << step.name;
     // Set up the environment for the step commands

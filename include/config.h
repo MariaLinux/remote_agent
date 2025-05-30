@@ -68,6 +68,7 @@ enum class ErrorCode {
     FILE_CREATE_FAILED,
     FILE_CLOSE_FAILED,
     UNARCHIVE_FAILED,
+    NO_NEW_MAIL,
     UNKNOWN
 };
 
@@ -75,7 +76,7 @@ using Error = std::pair<ErrorCode, std::string>;
 
 class Config {
     public:
-        static Config getInstance(std::string config_path = "");
+        static Config& getInstance(std::string config_path = "");
         
         const GlobalConfig& getGlobalConfig() const;
         const std::vector<AccountConfig>& getAccounts() const;

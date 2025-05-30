@@ -7,7 +7,7 @@
 
 namespace remote_agent {
 
-Config Config::getInstance(std::string config_path) {
+Config& Config::getInstance(std::string config_path) {
   static Config instance;
   if (!config_path.empty()) {
     instance.loadConfig(config_path);
@@ -17,15 +17,15 @@ Config Config::getInstance(std::string config_path) {
 
 Config::Config() {}
 
-const GlobalConfig &Config::getGlobalConfig() const { return _global_config; }
+const GlobalConfig& Config::getGlobalConfig() const { return _global_config; }
 
-const std::vector<AccountConfig> &Config::getAccounts() const {
+const std::vector<AccountConfig>& Config::getAccounts() const {
   return _accounts;
 }
 
 std::optional<AccountConfig>
 Config::getAccountByName(const std::string &name) const {
-  for (const auto &account : _accounts) {
+  for (const auto& account : _accounts) {
     if (account.name == name) {
       return account;
     }
@@ -33,7 +33,7 @@ Config::getAccountByName(const std::string &name) const {
   return std::nullopt;
 }
 
-void Config::loadConfig(const std::string &config_path) {
+void Config::loadConfig(const std::string& config_path) {
   try {
     YAML::Node config = YAML::LoadFile(config_path);
 
@@ -44,6 +44,7 @@ void Config::loadConfig(const std::string &config_path) {
       _global_config.log_level = global["log_level"].as<std::string>("info");
       _global_config.work_dir = global["work_dir"].as<std::string>("/tmp");
       _global_config.zeromq_endpoint = global["zeromq_endpoint"].as<std::string>("tcp://*:2986");
+      _global_config.check_mail_interval_ms = global["check_mail_interval_ms"].as<int>(0);
     }
     loadDotEnvFile();
 

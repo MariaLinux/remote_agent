@@ -1,7 +1,9 @@
 #include "ipc.h"
+
 #include <mutex>
 #include <string>
 #include <regex>
+#include <zmqpp/message.hpp>
 
 namespace remote_agent {
 
@@ -10,7 +12,8 @@ IPCContext &IPCContext::getInstance() {
   return instance;
 }
 
-IPCContext::IPCContext() {}
+IPCContext::IPCContext() {
+}
 
 bool IPCContext::hasPublisher(const std::string& endpoint) {
   std::lock_guard<std::mutex> lock(_mutex);

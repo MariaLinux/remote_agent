@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+cmake_policy(SET CMP0156 NEW)
 
 project(remote_agent)
 
@@ -45,15 +46,41 @@ find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(minizip REQUIRED)
 find_package(zmqpp REQUIRED)
+find_package(Protobuf CONFIG REQUIRED)
 
+file(GLOB PROTO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto)
+set(Protobuf_PROTOC_EXECUTABLE )
+if(DEFINED protobuf_PACKAGE_FOLDER_RELEASE)
+    set(Protobuf_PROTOC_EXECUTABLE ${protobuf_PACKAGE_FOLDER_RELEASE}/bin/protoc)
+elseif(DEFINED protobuf_PACKAGE_FOLDER_DEBUG)
+    set(Protobuf_PROTOC_EXECUTABLE ${protobuf_PACKAGE_FOLDER_DEBUG}/bin/protoc)
+endif()
+# set_property(TARGET protobuf::protoc PROPERTY IMPORTED_LOCATION ${Protobuf_PROTOC_EXECUTABLE})
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/proto)
+execute_process(
+        COMMAND "${Protobuf_PROTOC_EXECUTABLE}" -I=${CMAKE_CURRENT_SOURCE_DIR}/proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/proto ${PROTO_FILES}
+        OUTPUT_VARIABLE PROTOC_VERSION
+        RESULT_VARIABLE PROTOC_RESULT)
+    
+if(PROTOC_RESULT EQUAL 0)
+    message(STATUS "protoc is working: ${PROTOC_VERSION}")
+else()
+    message(FATAL_ERROR "protoc is not working properly")
+endif()
+
+file(GLOB_RECURSE PROTO_SRCS ${CMAKE_CURRENT_BINARY_DIR}/proto/*.pb.cc)
 file(GLOB_RECURSE SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${PROTO_SRCS})
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+    $<$<CONFIG:Release>:NDEBUG>)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
+    ${CMAKE_CURRENT_BINARY_DIR}/proto
     ${mailio_INCLUDE_DIRS}
     ${minizip_INCLUDE_DIRS}
     ${yaml-cpp_INCLUDE_DIRS}
@@ -75,6 +102,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     yaml-cpp::yaml-cpp
     MINIZIP::minizip
     zmqpp::zmqpp
+    protobuf::libprotobuf
     pthread
     )
 
