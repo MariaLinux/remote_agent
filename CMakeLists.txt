@@ -34,9 +34,9 @@ if (conan_POPULATED)
         COMMAND "${CONANEXE}" profile detect
     )
     endif()
-    execute_process(COMMAND "${CONANEXE}" install conanfile.txt --build=missing -s build_type=${CMAKE_BUILD_TYPE}
+    execute_process(COMMAND "${CONANEXE}" install conanfile.txt -of ${CMAKE_BINARY_DIR}/conan --build=missing -s build_type=${CMAKE_BUILD_TYPE}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_BINARY_DIR}/generators)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_BINARY_DIR}/conan)
     include(conan_toolchain)
 endif()
 
@@ -61,7 +61,7 @@ execute_process(
         COMMAND "${Protobuf_PROTOC_EXECUTABLE}" -I=${CMAKE_CURRENT_SOURCE_DIR}/proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/proto ${PROTO_FILES}
         OUTPUT_VARIABLE PROTOC_VERSION
         RESULT_VARIABLE PROTOC_RESULT)
-    
+
 if(PROTOC_RESULT EQUAL 0)
     message(STATUS "protoc is working: ${PROTOC_VERSION}")
 else()
